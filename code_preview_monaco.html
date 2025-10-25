@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VS Code-like Preview — Monaco</title>
+  <style>
+    html,body,#container{height:100%;margin:0;padding:0;background:#1e1e1e}
+    #header{height:48px;background:#252526;color:#ccc;display:flex;align-items:center;padding:0 12px;font-family:Segoe UI,Roboto,Arial}
+    #header .title{font-weight:600}
+    #editor{height:calc(100% - 48px)}
+    .controls{margin-left:auto;display:flex;gap:8px}
+    .btn{background:#0e639c;color:white;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;border:none}
+  </style>
+</head>
+<body>
+  <div id="header">
+    <div class="title">Monaco — VS Code look (readonly)</div>
+    <div class="controls">
+      <button id="toggleTheme" class="btn">Toggle Theme</button>
+      <button id="copyCode" class="btn">Copy</button>
+    </div>
+  </div>
+  <div id="editor"></div>
+
+  <!-- Monaco via CDN (officially recommended loader) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+  <script>
+    // Configure require to load Monaco from CDN
+    window.require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.41.0/min/vs' } };
+  </script>
+  <script>
+    // Sample code to display
+    const sampleCode = `// Example React component (JSX)
+import React from 'react';
+
+function Hello({ name }) {
+  return (
+    <div style={{ padding: 12 }}>
+      <h1>Hello, {name}!</h1>
+      <p>This is rendered in the Monaco editor with the VS Code theme.</p>
+    </div>
+  );
+}
+
+export default Hello;
+`;
+
+    // Load Monaco
+    require(['vs/editor/editor.main'], function () {
+      const editor = monaco.editor.create(document.getElementById('editor'), {
+        value: sampleCode,
+        language: 'javascript',
+        theme: 'vs-dark',
+        readOnly: true,
+        automaticLayout: true,
+        fontFamily: "Consolas, 'Courier New', monospace",
+        fontSize: 13,
+        minimap: { enabled: false },
+      });
+
+      // Toggle theme button
+      const toggleBtn = document.getElementById('toggleTheme');
+      toggleBtn.addEventListener('click', () => {
+        const current = monaco.editor.getTheme();
+        const newTheme = current === 'vs-dark' ? 'vs' : 'vs-dark';
+        monaco.editor.setTheme(newTheme);
+      });
+
+      // Copy code
+      document.getElementById('copyCode').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(editor.getValue());
+          document.getElementById('copyCode').textContent = 'Copied ✓';
+          setTimeout(() => (document.getElementById('copyCode').textContent = 'Copy'), 1500);
+        } catch (e) {
+          alert('Clipboard failed: ' + e);
+        }
+      });
+
+      // Add a subtle editor-like background color for the page
+      document.body.style.background = '#1e1e1e';
+    });
+  </script>
+</body>
+</html>
